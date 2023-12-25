@@ -1,5 +1,6 @@
 import react, { useState } from "react";
 import './App.css';
+import Tesseract from "tesseract.js";
 
 const App = () => {
 
@@ -7,6 +8,18 @@ const App = () => {
   const [text, setText] = useState("");
   const [image, setImage] = useState("");
   const [progress, setProgress] = useState(0);
+
+  const handleClick = ()=> {
+    setIsLoading(true);
+    Tesseract.recognize(
+      image,
+      "eng",
+      {logger: (m)=>{console.log(m);}}
+    ).then(({data: {text}})=>{
+      setText(text);
+      setIsLoading(false);
+    });
+  }
 
   return (
     <div className="container" style={{height:"100vh"}}>
@@ -18,8 +31,8 @@ const App = () => {
           {
             !isLoading && !text && (
               <>
-                <input type="file" className="form-control mt-5" onChange={(e) => setImage(URL.createObjectURL(e.value.files[0]))} />
-                <input type="button" className="form-control btn btn-primary mt-4" value="convert"/>
+                <input type="file" className="form-control mt-5" onChange={(e) => setImage(URL.createObjectURL(e.target.files[0]))} />
+                <input type="button" className="form-control btn btn-primary mt-4" value="convert" onClick={handleClick}/>
               </>
             )
           }
