@@ -2,6 +2,7 @@ import react, { useState } from "react";
 import './App.css';
 import Tesseract from "tesseract.js";
 
+
 const App = () => {
 
   const [isLoading,setIsLoading] = useState(false);
@@ -9,22 +10,47 @@ const App = () => {
   const [image, setImage] = useState("");
   const [progress, setProgress] = useState(0);
 
-  const handleClick = ()=> {
+  const handleClick = () => {
     setIsLoading(true);
-    Tesseract.recognize(
-      image,
-      "eng",
-      {logger: (m)=> {
+    Tesseract.recognize(image, "tha+eng", {
+      logger: (m) => {
         console.log(m);
-        if(m.status == "recognizing text"){
-          setProgress( parseInt(m.progress*100))
+        if (m.status === "recognizing text") {
+          setProgress(parseInt(m.progress * 100));
         }
       },
-    }).then(({data: {text}})=>{
-      setText(text);
-      setIsLoading(false);
-    });
-  }
+    })
+      .then(({ data: { text } }) => {
+        const apiKey = 'AIzaSyCM6UHNOq8xzfDWwJEoeVG1Ps8GIbnV_Tg';
+        const url = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`;
+        const params = {
+          q: text,
+          source: 'th',
+          target: 'en',
+        };
+  
+        // Perform translation request
+        fetch(`${url}&q=${encodeURIComponent(params.q)}&source=${params.source}&target=${params.target}`, {
+          method: 'POST',
+        })
+          .then((response) => response.json())
+          .then((translatedData) => {
+            const translatedText = translatedData.data.translations[0].translatedText;
+            setText(translatedText);
+            setIsLoading(false);
+          })
+          .catch((error) => {
+            console.error('Error translating text:', error);
+            setIsLoading(false);
+          });
+      })
+      .catch((error) => {
+        console.error('Error recognizing text:', error);
+        setIsLoading(false);
+      });
+  };
+  
+  
 
   return (
     <div className="container" style={{height:"100vh"}}>
